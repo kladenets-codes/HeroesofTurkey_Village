@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heroes of Turkey - Köy Düzeni</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <img src="wow_logo.svg" alt="WoW Logo" class="header-logo">
+            <div class="header-text">
+                <h1>Heroes of Turkey</h1>
+                <h2>Köy Düzeni</h2>
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Veriler yükleniyor...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error" style="display: none;">
+            <p>Veriler yüklenirken bir hata oluştu.</p>
+        </div>
+
+        <!-- Main Content -->
+        <main id="content" style="display: none;">
+            <div class="main-layout">
+                <!-- Map Section -->
+                <div class="map-section">
+                    <div class="map-container" id="mapContainer">
+                        <img src="https://wow.zamimg.com/uploads/screenshots/normal/1248929.jpg"
+                             alt="Köy Haritası"
+                             id="mapImage"
+                             crossorigin="anonymous">
+                        <div class="markers-container" id="markersContainer">
+                            <!-- Markers will be added here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player List Section -->
+                <div class="list-section">
+                    <div class="list-header">
+                        <input type="text" id="searchInput" placeholder="Oyuncu ara...">
+                    </div>
+                    <div class="player-list" id="playerList">
+                        <!-- Player list will be populated by JavaScript -->
+                    </div>
+                    <div class="stats-section">
+                        <div class="stat">
+                            <span class="stat-value" id="totalSpots">0</span>
+                            <span class="stat-label">Toplam Nokta</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+// =====================================================
+// CONFIGURATION - Google Sheets Ayarları
+// =====================================================
+const SHEET_ID = '1t8VZOpwYjYZcxUqtGvpw7g8sYvybISByBcpf8f4bYX4';
+const SHEET_NAME = 'Sheet1'; // Sayfa adı
+
+// =====================================================
+// COLUMN MAPPING - Sütun Eşleştirmesi
+// Google Sheets'teki sütun isimlerini buraya yazın
+// =====================================================
+const COLUMNS = {
+    SPOT_NUMBER: 'Slot Number',    // Sıra numarası sütunu
+    PLAYER_NAME: 'Member Name',    // Oyuncu adı sütunu
+};
+
+// =====================================================
+// KOORDINATLAR - Her sıra numarasının haritadaki konumu
+// Format: sıraNo: { x: pikselX, y: pikselY }
+// Koordinatlar eklendikten sonra haritada noktalar görünecek
+// =====================================================
+const SPOT_COORDINATES = {
+    // Koordinatlar eklenecek...
+};
+
+// =====================================================
+// DOM Elements
+// =====================================================
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('error');
+const contentEl = document.getElementById('content');
+const mapImage = document.getElementById('mapImage');
+const markersContainer = document.getElementById('markersContainer');
+const playerList = document.getElementById('playerList');
+const searchInput = document.getElementById('searchInput');
+const tooltip = document.getElementById('tooltip');
+const totalSpotsEl = document.getElementById('totalSpots');
+
+// =====================================================
+// Global State
+// =====================================================
+let allData = [];
+let markers = {};
+let playerItems = {};
+
+// =====================================================
+// Google Sheets Data Fetching
+// =====================================================
+function getSheetURL() {
+    return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+}
+
+async function fetchData() {
+    try {
+        const response = await fetch(getSheetURL());
+        const text = await response.text();
+
+        // Parse Google Visualization API response
+        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+        if (!jsonMatch || !jsonMatch[1]) {
+            throw new Error('Geçersiz veri formatı');
+        }
+
+        const data = JSON.parse(jsonMatch[1]);
+        if (data.status === 'error') {
+            throw new Error(data.errors[0].message);
+        }
+
+        return parseGoogleData(data);
+    } catch (error) {
+        console.error('Veri çekme hatası:', error);
+        throw error;
+    }
+}
+
+function parseGoogleData(data) {
+    const table = data.table;
+    const headers = table.cols.map((col, index) => {
+        // İlk sütun için her zaman 'Slot Number' kullan
+        if (index === 0) return 'Slot Number';
+        // İkinci sütun için her zaman 'Member Name' kullan
+        if (index === 1) return 'Member Name';
+        // Diğerleri için label veya id kullan
+        return col.label || col.id || `Column${index}`;
+    });
+
+    const rows = table.rows.map(row => {
+        const rowData = {};
+        row.c.forEach((cell, index) => {
+            const header = headers[index];
+            rowData[header] = cell ? (cell.v !== null ? cell.v : '') : '';
+        });
+        return rowData;
+    });
+
+    return rows;
+}
+
+// =====================================================
+// Map Markers
+// =====================================================
+function createMarkers() {
+    markersContainer.innerHTML = '';
+    markers = {};
+
+    const imgWidth = mapImage.naturalWidth;
+    const imgHeight = mapImage.naturalHeight;
+
+    allData.forEach(spot => {
+        const spotNumber = spot[COLUMNS.SPOT_NUMBER];
+        const playerName = spot[COLUMNS.PLAYER_NAME];
+
+        // Koordinatları SPOT_COORDINATES'dan al
+        const coords = SPOT_COORDINATES[spotNumber];
+        if (!coords) return;
+
+        const x = coords.x;
+        const y = coords.y;
+
+        // Koordinatları yüzde olarak hesapla
+        const xPercent = (x / imgWidth) * 100;
+        const yPercent = (y / imgHeight) * 100;
+
+        const marker = document.createElement('div');
+        marker.className = 'marker' + (playerName ? '' : ' empty');
+        marker.style.left = `${xPercent}%`;
+        marker.style.top = `${yPercent}%`;
+        marker.dataset.spot = spotNumber;
+
+        // Marker events
+        marker.addEventListener('mouseenter', (e) => {
+            showTooltip(e, spot);
+            highlightPlayerItem(spotNumber, true);
+        });
+
+        marker.addEventListener('mouseleave', () => {
+            hideTooltip();
+            highlightPlayerItem(spotNumber, false);
+        });
+
+        marker.addEventListener('click', () => {
+            scrollToPlayerItem(spotNumber);
+        });
+
+        markersContainer.appendChild(marker);
+        markers[spotNumber] = marker;
+    });
+}
+
+function highlightMarker(spotNumber, highlight) {
+    const marker = markers[spotNumber];
+    if (marker) {
+        if (highlight) {
+            marker.classList.add('highlighted');
+        } else {
+            marker.classList.remove('highlighted');
+        }
+    }
+}
+
+// =====================================================
+// Player List
+// =====================================================
+const ARMORY_BASE_URL = 'https://worldofwarcraft.blizzard.com/en-gb/character/eu/twisting-nether/';
+
+function renderPlayerList(data) {
+    playerList.innerHTML = '';
+    playerItems = {};
+
+    if (data.length === 0) {
+        playerList.innerHTML = '<div class="no-results">Oyuncu bulunamadı</div>';
+        return;
+    }
+
+    data.forEach(spot => {
+        const spotNumber = spot[COLUMNS.SPOT_NUMBER];
+        const playerName = spot[COLUMNS.PLAYER_NAME];
+        const isEmpty = !playerName;
+
+        const item = document.createElement('div');
+        item.className = 'player-item' + (isEmpty ? ' empty' : '');
+        item.dataset.spot = spotNumber;
+
+        // Ek bilgileri topla (Slot Number ve Member Name hariç, boş olmayanlar)
+        const excludeKeys = [COLUMNS.SPOT_NUMBER, COLUMNS.PLAYER_NAME, ''];
+        const extraFields = Object.entries(spot)
+            .filter(([key, value]) => !excludeKeys.includes(key) && value !== '' && value !== null && value !== undefined)
+            .map(([key, value]) => `
+                <div class="player-row">
+                    <span class="row-label">${key}:</span>
+                    <span class="row-value">${value}</span>
+                </div>
+            `).join('');
+
+        // Armory link
+        const armoryLink = playerName
+            ? `<a href="${ARMORY_BASE_URL}${encodeURIComponent(playerName)}" target="_blank" class="armory-link" onclick="event.stopPropagation()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                Armory
+              </a>`
+            : '';
+
+        // Boş slot için farklı görünüm
+        if (isEmpty) {
+            item.innerHTML = `
+                <div class="player-row empty-slot-row">
+                    <img src="wow_logo.svg" alt="WoW" class="slot-logo">
+                    <span class="empty-slot-text">Slot Number: ${spotNumber} Boştur.</span>
+                </div>
+            `;
+        } else {
+            item.innerHTML = `
+                <div class="player-row">
+                    <img src="wow_logo.svg" alt="WoW" class="slot-logo">
+                    <span class="row-label">Slot Number:</span>
+                    <span class="row-value">${spotNumber}</span>
+                </div>
+                <div class="player-row">
+                    <span class="row-label">Member Name:</span>
+                    <span class="row-value player-name-value">${playerName}</span>
+                </div>
+                ${extraFields}
+                <div class="player-row">${armoryLink}</div>
+            `;
+        }
+
+        // Player item events
+        item.addEventListener('mouseenter', () => {
+            highlightMarker(spotNumber, true);
+        });
+
+        item.addEventListener('mouseleave', () => {
+            highlightMarker(spotNumber, false);
+        });
+
+        item.addEventListener('click', () => {
+            scrollToMarker(spotNumber);
+        });
+
+        playerList.appendChild(item);
+        playerItems[spotNumber] = item;
+    });
+}
+
+function highlightPlayerItem(spotNumber, highlight) {
+    const item = playerItems[spotNumber];
+    if (item) {
+        if (highlight) {
+            item.classList.add('highlighted');
+        } else {
+            item.classList.remove('highlighted');
+        }
+    }
+}
+
+function scrollToPlayerItem(spotNumber) {
+    const item = playerItems[spotNumber];
+    if (item) {
+        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        item.classList.add('highlighted');
+        setTimeout(() => item.classList.remove('highlighted'), 2000);
+    }
+}
+
+function scrollToMarker(spotNumber) {
+    const marker = markers[spotNumber];
+    if (marker) {
+        marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        marker.classList.add('highlighted');
+        setTimeout(() => marker.classList.remove('highlighted'), 2000);
+    }
+}
+
+// =====================================================
+// Search / Filter
+// =====================================================
+function filterPlayers() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+
+    const filtered = allData.filter(spot => {
+        const playerName = (spot[COLUMNS.PLAYER_NAME] || '').toLowerCase();
+        const spotNumber = String(spot[COLUMNS.SPOT_NUMBER]).toLowerCase();
+
+        return playerName.includes(searchTerm) || spotNumber.includes(searchTerm);
+    });
+
+    renderPlayerList(filtered);
+}
+
+// =====================================================
+// Tooltip
+// =====================================================
+function showTooltip(event, spot) {
+    const playerName = spot[COLUMNS.PLAYER_NAME];
+    const spotNumber = spot[COLUMNS.SPOT_NUMBER];
+
+    // Ek bilgileri topla
+    const extraInfo = Object.entries(spot)
+        .filter(([key]) => !Object.values(COLUMNS).includes(key) && spot[key])
+        .map(([key, value]) => `<div>${key}: ${value}</div>`)
+        .join('');
+
+    tooltip.innerHTML = `
+        <div class="tooltip-title">Sıra #${spotNumber}</div>
+        <div class="tooltip-player">${playerName || 'Boş Slot'}</div>
+        ${extraInfo ? `<div class="tooltip-info">${extraInfo}</div>` : ''}
+    `;
+
+    tooltip.classList.add('visible');
+    updateTooltipPosition(event);
+}
+
+function hideTooltip() {
+    tooltip.classList.remove('visible');
+}
+
+function updateTooltipPosition(event) {
+    const x = event.clientX + 15;
+    const y = event.clientY + 15;
+
+    // Ekran sınırlarını kontrol et
+    const rect = tooltip.getBoundingClientRect();
+    const maxX = window.innerWidth - rect.width - 20;
+    const maxY = window.innerHeight - rect.height - 20;
+
+    tooltip.style.left = `${Math.min(x, maxX)}px`;
+    tooltip.style.top = `${Math.min(y, maxY)}px`;
+}
+
+// =====================================================
+// Statistics
+// =====================================================
+function updateStats() {
+    const totalSpots = allData.length;
+    totalSpotsEl.textContent = totalSpots;
+}
+
+// =====================================================
+// Resize Handler
+// =====================================================
+function handleResize() {
+    // Marker'ları yeniden konumlandır
+    createMarkers();
+}
+
+// =====================================================
+// Initialize
+// =====================================================
+async function init() {
+    try {
+        // Verileri çek
+        allData = await fetchData();
+
+        // UI'ı göster
+        loadingEl.style.display = 'none';
+        contentEl.style.display = 'block';
+
+        // Resim yüklendiğinde marker'ları oluştur
+        if (mapImage.complete) {
+            createMarkers();
+        } else {
+            mapImage.onload = createMarkers;
+        }
+
+        // Oyuncu listesini oluştur
+        renderPlayerList(allData);
+
+        // İstatistikleri güncelle
+        updateStats();
+
+        // Event listeners
+        searchInput.addEventListener('input', filterPlayers);
+        window.addEventListener('resize', handleResize);
+        document.addEventListener('mousemove', (e) => {
+            if (tooltip.classList.contains('visible')) {
+                updateTooltipPosition(e);
+            }
+        });
+
+    } catch (error) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'flex';
+        errorEl.querySelector('p').innerHTML = `
+            Veriler yüklenirken hata oluştu.<br>
+            <small style="color: #a0a0a0">
+                Lütfen Google Sheets'in "Web'de yayınla" özelliğinin aktif olduğundan emin olun.<br>
+                Hata: ${error.message}
+            </small>
+        `;
+    }
+}
+
+// Sayfa yüklendiğinde başlat
+document.addEventListener('DOMContentLoaded', init);
