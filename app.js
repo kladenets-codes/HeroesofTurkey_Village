@@ -36,6 +36,8 @@ const toggleEmptyBtn = document.getElementById('toggleEmpty');
 const toggleFilledBtn = document.getElementById('toggleFilled');
 const tooltip = document.getElementById('tooltip');
 const totalSpotsEl = document.getElementById('totalSpots');
+const resizer = document.getElementById('resizer');
+const listSection = document.getElementById('listSection');
 
 // =====================================================
 // Global State
@@ -295,6 +297,40 @@ function toggleFilter(button) {
 }
 
 // =====================================================
+// Resizer - Sidebar genişliği ayarlama
+// =====================================================
+function initResizer() {
+    let isResizing = false;
+    let startX, startWidth;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = listSection.offsetWidth;
+        resizer.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const diff = startX - e.clientX;
+        const newWidth = Math.min(Math.max(startWidth + diff, 250), 600);
+        listSection.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            resizer.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+}
+
+// =====================================================
 // Tooltip
 // =====================================================
 function showTooltip(event, spot) {
@@ -374,6 +410,9 @@ async function init() {
 
         // İstatistikleri güncelle
         updateStats();
+
+        // Resizer'ı başlat
+        initResizer();
 
         // Event listeners
         searchInput.addEventListener('input', filterPlayers);
