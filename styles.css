@@ -165,6 +165,16 @@ header h2 {
     background: #ff6b8a;
     box-shadow: 0 0 20px rgba(233, 69, 96, 0.8), 0 0 40px rgba(233, 69, 96, 0.4);
     z-index: 100;
+    animation: markerPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes markerPulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.8), 0 0 40px rgba(233, 69, 96, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(233, 69, 96, 1), 0 0 60px rgba(233, 69, 96, 0.6), 0 0 80px rgba(233, 69, 96, 0.3);
+    }
 }
 
 .marker.empty {
@@ -300,6 +310,18 @@ header h2 {
 .player-item.highlighted {
     background: rgba(233, 69, 96, 0.2);
     border-color: #e94560;
+    animation: playerPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes playerPulse {
+    0%, 100% {
+        background: rgba(233, 69, 96, 0.2);
+        box-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+    }
+    50% {
+        background: rgba(233, 69, 96, 0.35);
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.5), 0 0 30px rgba(233, 69, 96, 0.2);
+    }
 }
 
 .player-item .player-row {
