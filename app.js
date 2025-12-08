@@ -32,6 +32,8 @@ const mapImage = document.getElementById('mapImage');
 const markersContainer = document.getElementById('markersContainer');
 const playerList = document.getElementById('playerList');
 const searchInput = document.getElementById('searchInput');
+const toggleEmptyBtn = document.getElementById('toggleEmpty');
+const toggleFilledBtn = document.getElementById('toggleFilled');
 const tooltip = document.getElementById('tooltip');
 const totalSpotsEl = document.getElementById('totalSpots');
 
@@ -184,12 +186,8 @@ function renderPlayerList(data) {
         const excludeKeys = [COLUMNS.SPOT_NUMBER, COLUMNS.PLAYER_NAME, ''];
         const extraFields = Object.entries(spot)
             .filter(([key, value]) => !excludeKeys.includes(key) && value !== '' && value !== null && value !== undefined)
-            .map(([key, value]) => `
-                <div class="player-row">
-                    <span class="row-label">${key}:</span>
-                    <span class="row-value">${value}</span>
-                </div>
-            `).join('');
+            .map(([key, value]) => `<span class="extra-field">${key}: ${value}</span>`)
+            .join('');
 
         // Armory link
         const armoryLink = playerName
@@ -206,24 +204,17 @@ function renderPlayerList(data) {
         // Boş slot için farklı görünüm
         if (isEmpty) {
             item.innerHTML = `
-                <div class="player-row empty-slot-row">
-                    <img src="wow_logo.svg" alt="WoW" class="slot-logo">
-                    <span class="empty-slot-text">Slot Number: ${spotNumber} Boştur.</span>
-                </div>
+                <img src="wow_logo.svg" alt="WoW" class="slot-logo">
+                <span class="slot-number">${spotNumber}</span>
+                <span class="empty-slot-text">Boştur.</span>
             `;
         } else {
             item.innerHTML = `
-                <div class="player-row">
-                    <img src="wow_logo.svg" alt="WoW" class="slot-logo">
-                    <span class="row-label">Slot Number:</span>
-                    <span class="row-value">${spotNumber}</span>
-                </div>
-                <div class="player-row">
-                    <span class="row-label">Member Name:</span>
-                    <span class="row-value player-name-value">${playerName}</span>
-                </div>
+                <img src="wow_logo.svg" alt="WoW" class="slot-logo">
+                <span class="slot-number">${spotNumber}</span>
+                <span class="player-name-value">${playerName}</span>
                 ${extraFields}
-                <div class="player-row">${armoryLink}</div>
+                ${armoryLink}
             `;
         }
 
@@ -279,15 +270,28 @@ function scrollToMarker(spotNumber) {
 // =====================================================
 function filterPlayers() {
     const searchTerm = searchInput.value.toLowerCase().trim();
+    const showEmpty = toggleEmptyBtn.classList.contains('active');
+    const showFilled = toggleFilledBtn.classList.contains('active');
 
     const filtered = allData.filter(spot => {
         const playerName = (spot[COLUMNS.PLAYER_NAME] || '').toLowerCase();
         const spotNumber = String(spot[COLUMNS.SPOT_NUMBER]).toLowerCase();
+        const isEmpty = !spot[COLUMNS.PLAYER_NAME];
 
+        // Boş/Dolu slot filtresi
+        if (isEmpty && !showEmpty) return false;
+        if (!isEmpty && !showFilled) return false;
+
+        // Arama filtresi
         return playerName.includes(searchTerm) || spotNumber.includes(searchTerm);
     });
 
     renderPlayerList(filtered);
+}
+
+function toggleFilter(button) {
+    button.classList.toggle('active');
+    filterPlayers();
 }
 
 // =====================================================
@@ -373,6 +377,8 @@ async function init() {
 
         // Event listeners
         searchInput.addEventListener('input', filterPlayers);
+        toggleEmptyBtn.addEventListener('click', () => toggleFilter(toggleEmptyBtn));
+        toggleFilledBtn.addEventListener('click', () => toggleFilter(toggleFilledBtn));
         window.addEventListener('resize', handleResize);
         document.addEventListener('mousemove', (e) => {
             if (tooltip.classList.contains('visible')) {
