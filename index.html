@@ -3,8 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heroes of Turkey - Köy Düzeni</title>
+    <title>Heroes of Turkey - Köy Düzeni (Demo)</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* =====================================================
+           Heroes of Turkey - Silver/Gümüş Tema (Demo)
+           ===================================================== */
+
+        /* Renk Değişkenleri */
+        :root {
+            --bg-primary: #0d0d0d;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --accent-silver: #c0c0c0;
+            --accent-silver-light: #e8e8e8;
+            --accent-silver-dark: #8a8a8a;
+            --accent-steel: #71797E;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --border-color: #333333;
+        }
+
+        /* Arka Plan */
+        html, body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        /* Header */
+        header {
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid var(--accent-silver);
+        }
+
+        header h1, header h1 a {
+            color: var(--accent-silver);
+        }
+
+        header h1 a:hover {
+            color: var(--accent-silver-light);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border-color: var(--bg-tertiary);
+            border-top-color: var(--accent-silver);
+        }
+
+        /* Markers */
+        .marker {
+            background: var(--accent-silver);
+            box-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+        }
+
+        .marker::after {
+            background: #fff;
+        }
+
+        .marker:hover,
+        .marker.highlighted {
+            background: var(--accent-silver-light);
+            box-shadow: 0 0 20px rgba(192, 192, 192, 0.8), 0 0 40px rgba(192, 192, 192, 0.4);
+        }
+
+        @keyframes markerPulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(192, 192, 192, 0.8), 0 0 40px rgba(192, 192, 192, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(232, 232, 232, 1), 0 0 60px rgba(192, 192, 192, 0.6), 0 0 80px rgba(192, 192, 192, 0.3);
+            }
+        }
+
+        /* Zoom Controls */
+        .zoom-controls button:hover {
+            background: var(--accent-silver);
+            color: #000;
+        }
+
+        /* Resizer */
+        .resizer:hover,
+        .resizer.active {
+            background: var(--accent-silver);
+        }
+
+        /* List Header */
+        .list-header input:focus {
+            border-color: var(--accent-silver);
+        }
+
+        /* Filter Buttons */
+        .filter-btn:hover {
+            border-color: var(--accent-silver);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-silver);
+            border-color: var(--accent-silver);
+            color: #000;
+        }
+
+        /* Player Items */
+        .player-item:hover,
+        .player-item.highlighted {
+            background: rgba(192, 192, 192, 0.15);
+            border-color: var(--accent-silver);
+        }
+
+        @keyframes playerPulse {
+            0%, 100% {
+                background: rgba(192, 192, 192, 0.15);
+                box-shadow: 0 0 10px rgba(192, 192, 192, 0.3);
+            }
+            50% {
+                background: rgba(192, 192, 192, 0.25);
+                box-shadow: 0 0 20px rgba(192, 192, 192, 0.5), 0 0 30px rgba(192, 192, 192, 0.2);
+            }
+        }
+
+        .player-item .player-name-value {
+            color: var(--accent-silver);
+        }
+
+        /* Stats */
+        .stat-value {
+            color: var(--accent-silver);
+        }
+
+        .stat-value.empty-stat {
+            color: #6a6a7a;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            border: 1px solid var(--accent-silver);
+        }
+
+        .tooltip .tooltip-title {
+            color: var(--accent-silver);
+        }
+
+        /* Footer */
+        .footer-link.guild-link:hover {
+            color: var(--accent-silver);
+            border-color: var(--accent-silver);
+        }
+
+        /* Scrollbar */
+        *::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--accent-silver) 0%, var(--accent-silver-dark) 100%);
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--accent-silver-light) 0%, var(--accent-silver) 100%);
+        }
+
+        * {
+            scrollbar-color: var(--accent-silver) rgba(26, 26, 46, 0.8);
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
