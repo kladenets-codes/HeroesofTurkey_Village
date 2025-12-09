@@ -34,12 +34,19 @@
                 <!-- Map Section -->
                 <div class="map-section">
                     <div class="map-container" id="mapContainer">
-                        <img src="https://maps.wowdb.com/beta/2351_razorwind_shores.feaa816237aa53702599bcdb5c9a65c5.jpg"
-                             alt="Köy Haritası"
-                             id="mapImage"
-                             crossorigin="anonymous">
-                        <div class="markers-container" id="markersContainer">
-                            <!-- Markers will be added here by JavaScript -->
+                        <div class="map-inner" id="mapInner">
+                            <img src="https://wow.zamimg.com/images/wow/maps/enus/original/15524.jpg?1765189011"
+                                 alt="Köy Haritası"
+                                 id="mapImage"
+                                 crossorigin="anonymous">
+                            <div class="markers-container" id="markersContainer">
+                                <!-- Markers will be added here by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="zoom-controls">
+                            <button id="zoomIn" title="Yakınlaştır">+</button>
+                            <button id="zoomReset" title="Sıfırla">⟲</button>
+                            <button id="zoomOut" title="Uzaklaştır">−</button>
                         </div>
                     </div>
                 </div>
