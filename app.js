@@ -377,7 +377,7 @@ function renderPlayerList(data) {
                 <div class="player-content">
                     <div class="player-row-top">
                         <span class="slot-number">${spotNumber}</span>
-                        <span class="empty-slot-text">Boştur.</span>
+                        <span class="empty-slot-text">Katılım sağlanabilir</span>
                     </div>
                 </div>
             `;

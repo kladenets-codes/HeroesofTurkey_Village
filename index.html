@@ -6,6 +6,14 @@
     <title>Heroes of Turkey - Köy Düzeni (Demo)</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        @font-face {
+            font-family: 'LifeCraft';
+            src: url('LifeCraft_Font.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+    </style>
+    <style>
         /* =====================================================
            Heroes of Turkey - Silver/Gümüş Tema (Demo)
            ===================================================== */
@@ -38,6 +46,8 @@
 
         header h1, header h1 a {
             color: var(--accent-silver);
+            font-family: 'LifeCraft', 'Segoe UI', Tahoma, sans-serif;
+            letter-spacing: 2px;
         }
 
         header h1 a:hover {
@@ -131,7 +141,7 @@
         }
 
         .stat-value.empty-stat {
-            color: #6a6a7a;
+            color: #4ade80;
         }
 
         /* Tooltip */
@@ -170,7 +180,7 @@
             <img src="heroesofturkey.png" alt="WoW Logo" class="header-logo">
             <div class="header-text">
                 <h1><a href="https://worldofwarcraft.blizzard.com/en-gb/guild/eu/twisting-nether/heroes-of-turkey" target="_blank">Heroes of Turkey</a></h1>
-                <h2>Köy Düzeni</h2>
+                <h2>Mahalle Sakinleri</h2>
             </div>
         </header>
 
@@ -225,11 +235,11 @@
                     <div class="stats-section">
                         <div class="stat">
                             <span class="stat-value" id="filledSpots">0</span>
-                            <span class="stat-label">Dolu</span>
+                            <span class="stat-label">Mevcut Sakinler</span>
                         </div>
                         <div class="stat">
                             <span class="stat-value empty-stat" id="emptySpots">0</span>
-                            <span class="stat-label">Boş</span>
+                            <span class="stat-label">Katılım Sağlanabilir</span>
                         </div>
                     </div>
                 </div>
