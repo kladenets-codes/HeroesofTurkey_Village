@@ -7,16 +7,25 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    height: 100vh;
+    min-height: 100vh;
     color: #fff;
-    overflow: hidden;
+    overflow-x: hidden;
+}
+
+/* Scrollbar gizleme (tüm tarayıcılar) */
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 .app-container {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 /* Header */
@@ -36,7 +45,7 @@ header {
 }
 
 .header-text {
-    text-align: left;
+    text-align: center;
 }
 
 header h1 {
@@ -416,6 +425,18 @@ header h2 {
     font-weight: 600;
 }
 
+.player-item .whatsapp-icon {
+    display: inline-flex;
+    align-items: center;
+    color: #25D366;
+    margin-left: 6px;
+}
+
+.player-item .whatsapp-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
 .player-item .armory-link {
     display: inline-flex;
     align-items: center;
@@ -513,23 +534,14 @@ header h2 {
     font-size: 0.8rem;
 }
 
-/* Scrollbar */
+/* Scrollbar gizleme (player list) */
 .player-list::-webkit-scrollbar {
-    width: 8px;
+    display: none;
 }
 
-.player-list::-webkit-scrollbar-track {
-    background: #0f3460;
-    border-radius: 4px;
-}
-
-.player-list::-webkit-scrollbar-thumb {
-    background: #e94560;
-    border-radius: 4px;
-}
-
-.player-list::-webkit-scrollbar-thumb:hover {
-    background: #ff6b8a;
+.player-list {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 /* No Results */
