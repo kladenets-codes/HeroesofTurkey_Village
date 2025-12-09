@@ -13,6 +13,7 @@ const COLUMNS = {
     PLAYER_NAME: 'Member Name',    // Oyuncu adı sütunu
     WHATSAPP: 'WP',                // WhatsApp durumu (true/false)
     CHARACTER_INFO: 'D:',          // Karakter bilgisi (örn: "Blood Elf Rogue, 608 ilvl")
+    AVATAR: 'E:',                  // Karakter avatar URL'si
 };
 
 // =====================================================
@@ -173,6 +174,8 @@ function parseGoogleData(data) {
         if (index === 2) return 'WP';
         // Dördüncü sütun (D) için 'D:' kullan (Character Info)
         if (index === 3) return 'D:';
+        // Beşinci sütun (E) için 'E:' kullan (Avatar URL)
+        if (index === 4) return 'E:';
         // Diğerleri için label veya id kullan
         return col.label || col.id || `Column${index}`;
     });
@@ -303,6 +306,38 @@ function getClassIcon(characterInfo) {
     return mappedClass ? `class/${mappedClass}.png` : null;
 }
 
+// Irka göre faction belirle (Horde veya Alliance)
+function getFaction(characterInfo) {
+    if (!characterInfo) return null;
+
+    const info = characterInfo.toLowerCase();
+
+    // Horde ırkları
+    const hordeRaces = [
+        'orc', 'undead', 'tauren', 'troll', 'blood elf', 'goblin',
+        'nightborne', 'highmountain', 'mag\'har', 'zandalari', 'vulpera'
+    ];
+
+    // Alliance ırkları
+    const allianceRaces = [
+        'human', 'dwarf', 'night elf', 'gnome', 'draenei', 'worgen',
+        'void elf', 'lightforged', 'dark iron', 'kul tiran', 'mechagnome'
+    ];
+
+    // Neutral ırklar: pandaren, dracthyr, earthen (her iki tarafta olabilir)
+
+    for (const race of hordeRaces) {
+        if (info.includes(race)) return 'horde';
+    }
+
+    for (const race of allianceRaces) {
+        if (info.includes(race)) return 'alliance';
+    }
+
+    // Neutral ırklar için null döndür (veya varsayılan)
+    return null;
+}
+
 function renderPlayerList(data) {
     playerList.innerHTML = '';
     playerItems = {};
@@ -317,23 +352,12 @@ function renderPlayerList(data) {
         const playerName = spot[COLUMNS.PLAYER_NAME];
         const hasWhatsApp = spot[COLUMNS.WHATSAPP] === true || spot[COLUMNS.WHATSAPP] === 'TRUE' || spot[COLUMNS.WHATSAPP] === 'true';
         const characterInfo = spot[COLUMNS.CHARACTER_INFO] || '';
+        const avatarUrl = spot[COLUMNS.AVATAR] || '';
         const isEmpty = !playerName;
 
         const item = document.createElement('div');
         item.className = 'player-item' + (isEmpty ? ' empty' : '');
         item.dataset.spot = spotNumber;
-
-        // Ek bilgileri topla (Slot Number, Member Name, WP ve D sütunu hariç, boş olmayanlar)
-        const excludeKeys = [COLUMNS.SPOT_NUMBER, COLUMNS.PLAYER_NAME, COLUMNS.WHATSAPP, 'D:', ''];
-        const extraFields = Object.entries(spot)
-            .filter(([key, value]) => !excludeKeys.includes(key) && value !== '' && value !== null && value !== undefined)
-            .map(([key, value]) => `<span class="extra-field">${key}: ${value}</span>`)
-            .join('');
-
-        // Karakter bilgisi badge
-        const characterBadge = characterInfo
-            ? `<span class="character-info">${characterInfo}</span>`
-            : '';
 
         // WhatsApp ikonu
         const whatsAppIcon = hasWhatsApp
@@ -344,13 +368,18 @@ function renderPlayerList(data) {
               </span>`
             : '';
 
-
         // Boş slot için farklı görünüm
         if (isEmpty) {
             item.innerHTML = `
-                <img src="wow_logo.svg" alt="WoW" class="slot-logo">
-                <span class="slot-number">${spotNumber}</span>
-                <span class="empty-slot-text">Boştur.</span>
+                <div class="avatar-wrapper">
+                    <img src="wow_logo.svg" alt="WoW" class="player-avatar">
+                </div>
+                <div class="player-content">
+                    <div class="player-row-top">
+                        <span class="slot-number">${spotNumber}</span>
+                        <span class="empty-slot-text">Boştur.</span>
+                    </div>
+                </div>
             `;
         } else {
             // Class ikonu
@@ -359,14 +388,31 @@ function renderPlayerList(data) {
                 ? `<img src="${classIcon}" alt="Class" class="class-icon">`
                 : '';
 
+            // Avatar: varsa karakter avatarı, yoksa WoW logosu
+            const avatarSrc = avatarUrl || 'wow_logo.svg';
+
+            // Faction logosu
+            const faction = getFaction(characterInfo);
+            const factionBadge = faction
+                ? `<img src="${faction}.png" alt="${faction}" class="faction-badge">`
+                : '';
+
             item.innerHTML = `
-                <img src="wow_logo.svg" alt="WoW" class="slot-logo">
-                <span class="slot-number">${spotNumber}</span>
-                ${classIconHtml}
-                <span class="player-name-value">${playerName}</span>
-                ${whatsAppIcon}
-                ${characterBadge}
-                ${extraFields}
+                <div class="avatar-wrapper">
+                    <img src="${avatarSrc}" alt="${playerName}" class="player-avatar" onerror="this.src='wow_logo.svg'">
+                    ${factionBadge}
+                </div>
+                <div class="player-content">
+                    <div class="player-row-top">
+                        <span class="slot-number">${spotNumber}</span>
+                        ${classIconHtml}
+                        <span class="player-name-value">${playerName}</span>
+                        ${whatsAppIcon}
+                    </div>
+                    <div class="player-row-bottom">
+                        <span class="character-info">${characterInfo || ''}</span>
+                    </div>
+                </div>
             `;
         }
 
@@ -614,12 +660,12 @@ function updateMapTransform() {
 }
 
 function zoomIn() {
-    mapZoom = Math.min(mapZoom * 1.2, 5);
+    mapZoom = mapZoom * 1.2; // Sınır yok
     updateMapTransform();
 }
 
 function zoomOut() {
-    mapZoom = Math.max(mapZoom / 1.2, 0.5);
+    mapZoom = Math.max(mapZoom / 1.2, 0.9); // Minimum %90
     // Pan sınırlarını kontrol et
     constrainPan();
     updateMapTransform();
@@ -738,7 +784,7 @@ function initZoomPan() {
             );
             if (lastTouchDistance > 0) {
                 const scale = distance / lastTouchDistance;
-                mapZoom = Math.min(Math.max(mapZoom * scale, 0.5), 5);
+                mapZoom = Math.max(mapZoom * scale, 0.9); // Minimum %90, maksimum sınır yok
                 updateMapTransform();
             }
             lastTouchDistance = distance;

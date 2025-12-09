@@ -375,10 +375,9 @@ header h2 {
 
 .player-item {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    padding: 10px 15px;
+    gap: 12px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     background: rgba(15, 52, 96, 0.3);
     border-radius: 8px;
@@ -418,25 +417,72 @@ header h2 {
     border-radius: 4px;
 }
 
-.player-item .slot-logo {
+/* Avatar Wrapper - faction badge için */
+.player-item .avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Player Avatar - 2 satır yüksekliğinde */
+.player-item .player-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 2px solid #0f3460;
+    display: block;
+}
+
+.player-item:hover .player-avatar,
+.player-item.highlighted .player-avatar {
+    border-color: #e94560;
+}
+
+/* Faction Badge - Avatar sol üst köşesi */
+.player-item .faction-badge {
+    position: absolute;
+    top: -6px;
+    left: -6px;
     width: 24px;
     height: 24px;
-    margin-right: 10px;
-    flex-shrink: 0;
+    border-radius: 50%;
+    background: #1a1a2e;
+    padding: 2px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+/* Player Content - 2 satırlık düzen */
+.player-item .player-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.player-item .player-row-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.player-item .player-row-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .player-item .slot-number {
     font-weight: bold;
     color: #fff;
-    margin-right: 10px;
-    min-width: 25px;
+    min-width: 22px;
+    font-size: 0.85rem;
 }
 
 .player-item .class-icon {
-    width: 20px;
-    height: 20px;
-    margin-right: 6px;
-    border-radius: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
     flex-shrink: 0;
 }
 
@@ -455,13 +501,17 @@ header h2 {
 .player-item .player-name-value {
     color: #e94560;
     font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .player-item .whatsapp-icon {
     display: inline-flex;
     align-items: center;
     color: #25D366;
-    margin-left: 6px;
+    flex-shrink: 0;
 }
 
 .player-item .whatsapp-icon svg {
@@ -472,13 +522,15 @@ header h2 {
 .player-item .character-info {
     display: inline-flex;
     align-items: center;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #4fc3f7;
-    padding: 2px 8px;
+    padding: 3px 8px;
     background: rgba(79, 195, 247, 0.1);
     border: 1px solid rgba(79, 195, 247, 0.3);
     border-radius: 4px;
-    margin-left: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .player-item.empty {
