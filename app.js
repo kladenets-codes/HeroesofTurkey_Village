@@ -103,7 +103,8 @@ const searchInput = document.getElementById('searchInput');
 const toggleEmptyBtn = document.getElementById('toggleEmpty');
 const toggleFilledBtn = document.getElementById('toggleFilled');
 const tooltip = document.getElementById('tooltip');
-const totalSpotsEl = document.getElementById('totalSpots');
+const filledSpotsEl = document.getElementById('filledSpots');
+const emptySpotsEl = document.getElementById('emptySpots');
 const resizer = document.getElementById('resizer');
 const listSection = document.getElementById('listSection');
 const mapContainer = document.getElementById('mapContainer');
@@ -533,8 +534,10 @@ function updateTooltipPosition(event) {
 // Statistics
 // =====================================================
 function updateStats() {
-    const totalSpots = allData.length;
-    totalSpotsEl.textContent = totalSpots;
+    const filledSpots = allData.filter(spot => spot[COLUMNS.PLAYER_NAME]).length;
+    const emptySpots = allData.length - filledSpots;
+    filledSpotsEl.textContent = filledSpots;
+    emptySpotsEl.textContent = emptySpots;
 }
 
 // =====================================================
