@@ -12,6 +12,7 @@ const COLUMNS = {
     SPOT_NUMBER: 'Slot Number',    // Sıra numarası sütunu
     PLAYER_NAME: 'Member Name',    // Oyuncu adı sütunu
     WHATSAPP: 'WP',                // WhatsApp durumu (true/false)
+    CHARACTER_INFO: 'D:',          // Karakter bilgisi (örn: "Blood Elf Rogue, 608 ilvl")
 };
 
 // =====================================================
@@ -170,6 +171,8 @@ function parseGoogleData(data) {
         if (index === 1) return 'Member Name';
         // Üçüncü sütun için her zaman 'WP' kullan
         if (index === 2) return 'WP';
+        // Dördüncü sütun (D) için 'D:' kullan (Character Info)
+        if (index === 3) return 'D:';
         // Diğerleri için label veya id kullan
         return col.label || col.id || `Column${index}`;
     });
@@ -251,7 +254,54 @@ function highlightMarker(spotNumber, highlight) {
 // =====================================================
 // Player List
 // =====================================================
-const ARMORY_BASE_URL = 'https://worldofwarcraft.blizzard.com/en-gb/character/eu/twisting-nether/';
+
+// Class adından logo dosya yolunu döndür
+function getClassIcon(characterInfo) {
+    if (!characterInfo) return null;
+
+    // "Blood Elf Protection Warrior, 712 ilvl" -> virgülden önceki kısım
+    const beforeComma = characterInfo.split(',')[0];
+    if (!beforeComma) return null;
+
+    // Son kelime class adı: "Blood Elf Protection Warrior" -> "Warrior"
+    const words = beforeComma.trim().split(' ');
+    const className = words[words.length - 1].toLowerCase();
+
+    // Class eşleştirmesi
+    const classMap = {
+        'warrior': 'warrior',
+        'paladin': 'paladin',
+        'hunter': 'hunter',
+        'rogue': 'rogue',
+        'priest': 'priest',
+        'shaman': 'shaman',
+        'mage': 'mage',
+        'warlock': 'warlock',
+        'monk': 'monk',
+        'druid': 'druid',
+        'evoker': 'evoker',
+        'demonhunter': 'demonhunter',
+        'deathknight': 'deathknight',
+        // Death Knight ve Demon Hunter için alternatif yazımlar
+        'death': 'deathknight',  // "Death Knight" -> son kelime "Knight" olur ama önceki "Death" olabilir
+        'knight': 'deathknight',
+        'demon': 'demonhunter'
+    };
+
+    // İki kelimeli classlar için kontrol (Death Knight, Demon Hunter)
+    if (words.length >= 2) {
+        const twoWords = words.slice(-2).join('').toLowerCase();
+        if (twoWords === 'deathknight' || twoWords.includes('death') && twoWords.includes('knight')) {
+            return 'class/deathknight.png';
+        }
+        if (twoWords === 'demonhunter' || twoWords.includes('demon') && twoWords.includes('hunter')) {
+            return 'class/demonhunter.png';
+        }
+    }
+
+    const mappedClass = classMap[className];
+    return mappedClass ? `class/${mappedClass}.png` : null;
+}
 
 function renderPlayerList(data) {
     playerList.innerHTML = '';
@@ -266,18 +316,24 @@ function renderPlayerList(data) {
         const spotNumber = spot[COLUMNS.SPOT_NUMBER];
         const playerName = spot[COLUMNS.PLAYER_NAME];
         const hasWhatsApp = spot[COLUMNS.WHATSAPP] === true || spot[COLUMNS.WHATSAPP] === 'TRUE' || spot[COLUMNS.WHATSAPP] === 'true';
+        const characterInfo = spot[COLUMNS.CHARACTER_INFO] || '';
         const isEmpty = !playerName;
 
         const item = document.createElement('div');
         item.className = 'player-item' + (isEmpty ? ' empty' : '');
         item.dataset.spot = spotNumber;
 
-        // Ek bilgileri topla (Slot Number, Member Name ve WP hariç, boş olmayanlar)
-        const excludeKeys = [COLUMNS.SPOT_NUMBER, COLUMNS.PLAYER_NAME, COLUMNS.WHATSAPP, ''];
+        // Ek bilgileri topla (Slot Number, Member Name, WP ve D sütunu hariç, boş olmayanlar)
+        const excludeKeys = [COLUMNS.SPOT_NUMBER, COLUMNS.PLAYER_NAME, COLUMNS.WHATSAPP, 'D:', ''];
         const extraFields = Object.entries(spot)
             .filter(([key, value]) => !excludeKeys.includes(key) && value !== '' && value !== null && value !== undefined)
             .map(([key, value]) => `<span class="extra-field">${key}: ${value}</span>`)
             .join('');
+
+        // Karakter bilgisi badge
+        const characterBadge = characterInfo
+            ? `<span class="character-info">${characterInfo}</span>`
+            : '';
 
         // WhatsApp ikonu
         const whatsAppIcon = hasWhatsApp
@@ -288,17 +344,6 @@ function renderPlayerList(data) {
               </span>`
             : '';
 
-        // Armory link
-        const armoryLink = playerName
-            ? `<a href="${ARMORY_BASE_URL}${encodeURIComponent(playerName)}" target="_blank" class="armory-link" onclick="event.stopPropagation()">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                    <polyline points="15 3 21 3 21 9"></polyline>
-                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-                Armory
-              </a>`
-            : '';
 
         // Boş slot için farklı görünüm
         if (isEmpty) {
@@ -308,13 +353,20 @@ function renderPlayerList(data) {
                 <span class="empty-slot-text">Boştur.</span>
             `;
         } else {
+            // Class ikonu
+            const classIcon = getClassIcon(characterInfo);
+            const classIconHtml = classIcon
+                ? `<img src="${classIcon}" alt="Class" class="class-icon">`
+                : '';
+
             item.innerHTML = `
                 <img src="wow_logo.svg" alt="WoW" class="slot-logo">
                 <span class="slot-number">${spotNumber}</span>
+                ${classIconHtml}
                 <span class="player-name-value">${playerName}</span>
                 ${whatsAppIcon}
+                ${characterBadge}
                 ${extraFields}
-                ${armoryLink}
             `;
         }
 

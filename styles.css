@@ -432,6 +432,14 @@ header h2 {
     min-width: 25px;
 }
 
+.player-item .class-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
 .player-item .row-label {
     color: #a0a0a0;
     font-size: 0.8rem;
@@ -461,24 +469,16 @@ header h2 {
     height: 16px;
 }
 
-.player-item .armory-link {
+.player-item .character-info {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    font-size: 0.8rem;
     color: #4fc3f7;
-    text-decoration: none;
-    font-size: 0.85rem;
-    transition: color 0.2s;
-}
-
-.player-item .armory-link:hover {
-    color: #81d4fa;
-    text-decoration: underline;
-}
-
-.player-item .armory-link svg {
-    width: 14px;
-    height: 14px;
+    padding: 2px 8px;
+    background: rgba(79, 195, 247, 0.1);
+    border: 1px solid rgba(79, 195, 247, 0.3);
+    border-radius: 4px;
+    margin-left: 8px;
 }
 
 .player-item.empty {
